@@ -1,6 +1,6 @@
 git+https://github.com/Farama-Foundation/d4rl@master#egg=d4rl
 mujoco==3.1.6
-gym==0.18.3
+# gym==0.18.3
 cython==0.29.37
 torch==2.1.2
 torchrl==0.2.1
