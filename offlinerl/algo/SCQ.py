@@ -295,7 +295,7 @@ class SCQ:
         """
         self.update_vae(states, actions)
         with torch.no_grad():
-            idd_action_threshold = self.vae.calc_dist(states, actions).mean()
+            idd_action_threshold = self.vae.calc_dist(states, actions)
 
         """
         Step2. Update critic
