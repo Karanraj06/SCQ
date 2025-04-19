@@ -15,7 +15,7 @@ from offlinerl.utils.tanhpolicy import TanhGaussianPolicy
 from offlinerl.algo.vae import VAE
 
 class SCQ:
-    def __init__(self, state_shape, action_shape, max_action, args):
+    def __init__(self, state_shape, action_shape, max_action, replay_buffer, args):
         self.action_shape = action_shape
         self.state_shape = state_shape
         self.args = args
@@ -55,6 +55,7 @@ class SCQ:
             self.alpha_opt = optim.Adam([self.log_alpha], lr=args.actor_learning_rate)
 
         self.num = args.vae_sampling_num
+        self.replay_buffer = replay_buffer
 
         if args.lagrange_tau:
             self.log_lam = torch.zeros(1, requires_grad=True)
@@ -295,7 +296,22 @@ class SCQ:
         """
         self.update_vae(states, actions)
         with torch.no_grad():
-            idd_action_threshold = self.vae.calc_dist(states, actions)
+            idd_action_threshold = []
+            for i in range(states.shape[0]):
+                state_i = states[i]
+                matched_actions = self.replay_buffer.get_actions_for_state(state_i)
+
+                if len(matched_actions) == 0:
+                    matched_actions = actions[i].unsqueeze(0)
+                else:
+                    matched_actions = torch.tensor(matched_actions, dtype=torch.float32, device=states.device)
+                
+                state_i_rep = state_i.unsqueeze(0).repeat(matched_actions.shape[0], 1)
+                dists = self.vae.calc_dist(state_i_rep, matched_actions)
+                avg_dist = dists.mean()
+                idd_action_threshold.append(avg_dist)
+            
+            idd_action_threshold = torch.stack(idd_action_threshold)
 
         """
         Step2. Update critic

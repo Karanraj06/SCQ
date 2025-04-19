@@ -116,7 +116,7 @@ def main():
 
     # Load Policy
     if args.policy == "SCQ":
-        policy = SCQ(state_dim, action_dim, max_action, args)
+        policy = SCQ(state_dim, action_dim, max_action, replay_buffer, args)
     elif args.policy == "SAC":
         policy = SAC(state_dim, action_dim, max_action, args)
     else:

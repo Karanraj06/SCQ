@@ -16,6 +16,8 @@ class ReplayBuffer(object):
 
 		self.device = device
 
+		self.state_to_action_map = {}
+
 
 	def add(self, state, action, next_state, reward, done):
 		self.state[self.ptr] = state
@@ -63,6 +65,8 @@ class ReplayBuffer(object):
 			self.reward = self.reward[target_idx]
 			self.done = self.done[target_idx]
 			self.size = data_size
+		
+		self.build_state_to_actions_map()
 
 	def normalize_reward(self, rewards, env_name):
 		if "antmaze" in env_name:
@@ -77,3 +81,16 @@ class ReplayBuffer(object):
 		self.state = (self.state - mean)/std
 		self.next_state = (self.next_state - mean)/std
 		return mean, std
+
+	def build_state_to_action_map(self, precision=4):
+		for i in range(self.size):
+			state_key = tuple(np.round(self.state[i], decimals=precision))
+			if state_key not in self.state_to_actions_map:
+				self.state_to_actions_map[state_key] = []
+			
+			self.state_to_actions_map[state_key].append(self.action[i])
+
+	def get_actions_for_state(self, state, precision=4):
+		state_key = tuple(np.round(state.detach().cpu().numpy(), decimals=precision))
+		actions = self.state_to_actions_map.get(state_key, [])
+		return actions
