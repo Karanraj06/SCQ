@@ -16,7 +16,7 @@ class ReplayBuffer(object):
 
 		self.device = device
 
-		self.state_to_action_map = {}
+		self.state_to_actions_map = {}
 
 
 	def add(self, state, action, next_state, reward, done):
@@ -82,7 +82,7 @@ class ReplayBuffer(object):
 		self.next_state = (self.next_state - mean)/std
 		return mean, std
 
-	def build_state_to_action_map(self, precision=4):
+	def build_state_to_actions_map(self, precision=4):
 		for i in range(self.size):
 			state_key = tuple(np.round(self.state[i], decimals=precision))
 			if state_key not in self.state_to_actions_map:
